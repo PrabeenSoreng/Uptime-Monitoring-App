@@ -8,12 +8,7 @@ const url = require('url');
 const fs = require('fs');
 const { StringDecoder } = require('string_decoder');
 const config = require('./config');
-const _data = require('./lib/data');
-
-// Testing data.js file
-_data.delete('test', 'newFile', function(err) {
-    console.log("This is the error : ", err);
-});
+const pingHandler = require('./routes/ping');
 
 const httpServer = http.createServer((req, res) => {
     unifiedServer(req, res);
@@ -46,7 +41,7 @@ function unifiedServer(req, res) {
     req.on('end', () => {
         buffer += decoder.end();
 
-        var chosenHandler = typeof(routes[path]) !== 'undefined' ? routes[path] : handlers.notFound;
+        var chosenHandler = typeof(routes[path]) !== 'undefined' ? routes[path] : handler.notFound;
 
         const data = {
             path,
@@ -69,16 +64,12 @@ function unifiedServer(req, res) {
     });
 }
 
-var handlers = {};
-
-handlers.ping = function(data, callback) {
-    callback(200, { 'Message': 'Hello World!!!' });
-}
-
-handlers.notFound = function(data, callback) {
-    callback(404);
-}
+var handler = {
+    'notFound': function(data, callback) {
+        callback(404);
+    }
+};
 
 var routes = {
-    'ping': handlers.ping
+    'ping': pingHandler.ping
 }
