@@ -5,10 +5,15 @@
 const http = require('http');
 const https = require('https');
 const url = require('url');
-const path = require('path');
 const fs = require('fs');
 const { StringDecoder } = require('string_decoder');
 const config = require('./config');
+const _data = require('./lib/data');
+
+// Testing data.js file
+_data.delete('test', 'newFile', function(err) {
+    console.log("This is the error : ", err);
+});
 
 const httpServer = http.createServer((req, res) => {
     unifiedServer(req, res);
@@ -66,7 +71,7 @@ function unifiedServer(req, res) {
 
 var handlers = {};
 
-handlers.sample = function(data, callback) {
+handlers.ping = function(data, callback) {
     callback(200, { 'Message': 'Hello World!!!' });
 }
 
@@ -75,5 +80,5 @@ handlers.notFound = function(data, callback) {
 }
 
 var routes = {
-    'sample': handlers.sample
+    'ping': handlers.ping
 }

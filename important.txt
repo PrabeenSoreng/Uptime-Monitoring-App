@@ -2,7 +2,7 @@ command for creating openssl key and certificate :-
 command : "openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem"
 
 
-Formatting and Whitespace
+Formatting and Whitespace ...................................................
 
 Formatting and whitespace issues are some of the more frustrating and subtle problems that many developers encounter when collaborating, especially cross-platform. It’s very easy for patches or other collaborated work to introduce subtle whitespace changes because editors silently introduce them, and if your files ever touch a Windows system, their line endings might be replaced. Git has a few configuration options to help with these issues.
 
@@ -23,3 +23,19 @@ This setup should leave you with CRLF endings in Windows checkouts, but LF endin
 If you’re a Windows programmer doing a Windows-only project, then you can turn off this functionality, recording the carriage returns in the repository by setting the config value to false:
 
 $ git config --global core.autocrlf false
+
+
+Permission Flags........................................................
+
+r 	Open file for reading. An exception occurs if the file does not exist.
+r+	Open file for reading and writing. An exception occurs if the file does not exist.
+rs	Open file for reading in synchronous mode.
+rs+	Open file for reading and writing, asking the OS to open it synchronously. See notes for 'rs' about using this with caution.
+w	Open file for writing. The file is created (if it does not exist) or truncated (if it exists).
+wx	Like 'w' but fails if the path exists.
+w+	Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).
+wx+	Like 'w+' but fails if path exists.
+a	Open file for appending. The file is created if it does not exist.
+ax	Like 'a' but fails if the path exists.
+a+	Open file for reading and appending. The file is created if it does not exist.
+ax+	Like 'a+' but fails if the the path exists.
