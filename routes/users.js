@@ -94,23 +94,46 @@ handlers._users.put = function(data, callback) {
     var firstName = typeof(data.payload.firstName) == 'string' && data.payload.firstName.trim().length > 0 ? data.payload.firstName.trim() : false;
     var lastName = typeof(data.payload.lastName) == 'string' && data.payload.lastName.trim().length > 0 ? data.payload.lastName.trim() : false;
     var password = typeof(data.payload.password) == 'string' && data.payload.password.trim().length > 0 ? data.payload.password.trim() : false;
+    var updatePhone = typeof(data.payload.phone) == 'string' && data.payload.phone.trim().length == 10 ? data.payload.phone.trim() : false;
 
     if (phone) {
-        if (firstName || lastName || password) {
+        if (firstName || lastName || password || updatePhone) {
             _data.read('users', phone, function(err, userData) {
                 if (!err && userData) {
                     if (firstName) userData.firstName = firstName;
                     if (lastName) userData.lastName = lastName;
                     if (password)
                         userData.password = helpers.hash(password);
-
-                    _data.update('users', phone, userData, function(err) {
-                        if (!err) {
-                            callback(200, userData);
-                        } else {
-                            callback(500, { 'Error': 'Could not update the error' });
-                        }
-                    });
+                    if (updatePhone) {
+                        userData.phone = updatePhone;
+                        _data.read('users', updatePhone, function(err) {
+                            if (err) {
+                                _data.create('users', updatePhone, userData, function(err) {
+                                    if (!err) {
+                                        _data.delete('users', phone, function(err) {
+                                            if (!err) {
+                                                callback(200, userData);
+                                            } else {
+                                                callback(500, { 'Error': 'Could not delete' });
+                                            }
+                                        });
+                                    } else {
+                                        callback(500, { 'Error': 'Could not create the new user' });
+                                    }
+                                });
+                            } else {
+                                callback(400, { 'Error': 'User with that phone number already exists' });
+                            }
+                        });
+                    } else {
+                        _data.update('users', phone, userData, function(err) {
+                            if (!err) {
+                                callback(200, userData);
+                            } else {
+                                callback(500, { 'Error': 'Could not update the error' });
+                            }
+                        });
+                    }
                 } else {
                     callback(400, { 'Error': 'The specified user does not exist' });
                 }
