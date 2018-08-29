@@ -1,3 +1,20 @@
+Add to github:-
+git init
+
+git add .
+
+git status
+
+git commit -m "commit"
+
+git remote add origin https://github.com/PrabeenSoreng/Uptime-Monitoring-App.git
+
+git push -u origin master
+
+git push
+
+To logout go to windows credentials
+
 command for creating openssl key and certificate :-
 command : "openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem"
 
