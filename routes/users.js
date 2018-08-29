@@ -42,23 +42,13 @@ handlers._users.post = function(data, callback) {
                         tosAgreement
                     };
                     _data.create('users', phone, userObject, function(err) {
-                        if (!err) {
-                            callback(200, userObject);
-                        } else {
-                            console.log(err)
-                            callback(500, { 'Error': 'Could not create the new user' });
-                        }
+                        if (!err) callback(200, userObject);
+                        else callback(500, { 'Error': 'Could not create the new user' });
                     });
-                } else {
-                    callback(500, { 'Error': "Could not hash the user's password" });
-                }
-            } else {
-                callback(400, { 'Error': 'User with that phone number already exists.' });
-            }
+                } else callback(500, { 'Error': "Could not hash the user's password" });
+            } else callback(400, { 'Error': 'User with that phone number already exists.' });
         });
-    } else {
-        callback(400, { 'Error': 'Missing required fields.' });
-    }
+    } else callback(400, { 'Error': 'Missing required fields.' });
 };
 
 // Users - get
@@ -74,13 +64,9 @@ handlers._users.get = function(data, callback) {
             if (!err && userData) {
                 delete userData.password;
                 callback(200, userData);
-            } else {
-                callback(400, { 'Error': 'User does not exist' });
-            }
+            } else callback(400, { 'Error': 'User does not exist' });
         });
-    } else {
-        callback(400, { 'Error': 'Missing required field' });
-    }
+    } else callback(400, { 'Error': 'Missing required field' });
 };
 
 // Users - put
@@ -111,39 +97,23 @@ handlers._users.put = function(data, callback) {
                                 _data.create('users', updatePhone, userData, function(err) {
                                     if (!err) {
                                         _data.delete('users', phone, function(err) {
-                                            if (!err) {
-                                                callback(200, userData);
-                                            } else {
-                                                callback(500, { 'Error': 'Could not delete' });
-                                            }
+                                            if (!err) callback(200, userData);
+                                            else callback(500, { 'Error': 'Could not delete' });
                                         });
-                                    } else {
-                                        callback(500, { 'Error': 'Could not create the new user' });
-                                    }
+                                    } else callback(500, { 'Error': 'Could not create the new user' });
                                 });
-                            } else {
-                                callback(400, { 'Error': 'User with that phone number already exists' });
-                            }
+                            } else callback(400, { 'Error': 'User with that phone number already exists' });
                         });
                     } else {
                         _data.update('users', phone, userData, function(err) {
-                            if (!err) {
-                                callback(200, userData);
-                            } else {
-                                callback(500, { 'Error': 'Could not update the error' });
-                            }
+                            if (!err) callback(200, userData);
+                            else callback(500, { 'Error': 'Could not update the error' });
                         });
                     }
-                } else {
-                    callback(400, { 'Error': 'The specified user does not exist' });
-                }
+                } else callback(400, { 'Error': 'The specified user does not exist' });
             });
-        } else {
-            callback(400, { 'Error': 'Missing fields to update' });
-        }
-    } else {
-        callback(400, { 'Error': 'Missing required field' });
-    }
+        } else callback(400, { 'Error': 'Missing fields to update' });
+    } else callback(400, { 'Error': 'Missing required field' });
 };
 
 // Users - delete
@@ -158,21 +128,12 @@ handlers._users.delete = function(data, callback) {
         _data.read('users', phone, function(err, userData) {
             if (!err && userData) {
                 _data.delete('users', phone, function(err) {
-                    if (!err) {
-                        callback(200, { 'Message': 'Successfully deleted the user' });
-                    } else {
-                        callback(500, { 'Error': 'Could not delete the specified user' });
-                    }
+                    if (!err) callback(200, { 'Message': 'Successfully deleted the user' });
+                    else callback(500, { 'Error': 'Could not delete the specified user' });
                 });
-            } else {
-                callback(400, { 'Error': 'Could not find the specified user' });
-            }
+            } else callback(400, { 'Error': 'Could not find the specified user' });
         });
-    } else {
-        callback(400, { 'Error': 'Missing required field' });
-    }
+    } else callback(400, { 'Error': 'Missing required field' });
 };
-
-
 
 module.exports = handlers
