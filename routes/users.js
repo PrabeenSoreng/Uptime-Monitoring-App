@@ -4,6 +4,7 @@
 
 const _data = require('../lib/data');
 const helpers = require('../lib/helpers');
+const tokenHandler = require('./tokens');
 
 var handlers = {};
 
@@ -54,17 +55,21 @@ handlers._users.post = function(data, callback) {
 // Users - get
 // Required data: phone
 // Optional data: none
-// @TODO authentication
 handlers._users.get = function(data, callback) {
 
     var phone = typeof(data.queryStringObject.phone) == 'string' && data.queryStringObject.phone.trim().length == 10 ? data.queryStringObject.phone.trim() : false;
 
     if (phone) {
-        _data.read('users', phone, function(err, userData) {
-            if (!err && userData) {
-                delete userData.password;
-                callback(200, userData);
-            } else callback(400, { 'Error': 'User does not exist' });
+        var tokenId = typeof(data.headers.token) == 'string' ? data.headers.token : false;
+        tokenHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
+            if (isValid) {
+                _data.read('users', phone, function(err, userData) {
+                    if (!err && userData) {
+                        delete userData.password;
+                        callback(200, userData);
+                    } else callback(400, { 'Error': 'User does not exist' });
+                });
+            } else callback(403, { 'Error': 'Token missing or invalid' });
         });
     } else callback(400, { 'Error': 'Missing required field' });
 };
@@ -72,7 +77,6 @@ handlers._users.get = function(data, callback) {
 // Users - put
 // Required data: phone
 // Optional data: firstName, lastName, password
-// @TODO authentication
 handlers._users.put = function(data, callback) {
 
     var phone = typeof(data.queryStringObject.phone) == 'string' && data.queryStringObject.phone.trim().length == 10 ? data.queryStringObject.phone.trim() : false;
@@ -84,33 +88,38 @@ handlers._users.put = function(data, callback) {
 
     if (phone) {
         if (firstName || lastName || password || updatePhone) {
-            _data.read('users', phone, function(err, userData) {
-                if (!err && userData) {
-                    if (firstName) userData.firstName = firstName;
-                    if (lastName) userData.lastName = lastName;
-                    if (password)
-                        userData.password = helpers.hash(password);
-                    if (updatePhone) {
-                        userData.phone = updatePhone;
-                        _data.read('users', updatePhone, function(err) {
-                            if (err) {
-                                _data.create('users', updatePhone, userData, function(err) {
-                                    if (!err) {
-                                        _data.delete('users', phone, function(err) {
-                                            if (!err) callback(200, userData);
-                                            else callback(500, { 'Error': 'Could not delete' });
+            var tokenId = typeof(data.headers.token) == 'string' ? data.headers.token : false;
+            tokenHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
+                if (isValid) {
+                    _data.read('users', phone, function(err, userData) {
+                        if (!err && userData) {
+                            if (firstName) userData.firstName = firstName;
+                            if (lastName) userData.lastName = lastName;
+                            if (password)
+                                userData.password = helpers.hash(password);
+                            if (updatePhone) {
+                                userData.phone = updatePhone;
+                                _data.read('users', updatePhone, function(err) {
+                                    if (err) {
+                                        _data.create('users', updatePhone, userData, function(err) {
+                                            if (!err) {
+                                                _data.delete('users', phone, function(err) {
+                                                    if (!err) callback(200, userData);
+                                                    else callback(500, { 'Error': 'Could not delete' });
+                                                });
+                                            } else callback(500, { 'Error': 'Could not create the new user' });
                                         });
-                                    } else callback(500, { 'Error': 'Could not create the new user' });
+                                    } else callback(400, { 'Error': 'User with that phone number already exists' });
                                 });
-                            } else callback(400, { 'Error': 'User with that phone number already exists' });
-                        });
-                    } else {
-                        _data.update('users', phone, userData, function(err) {
-                            if (!err) callback(200, userData);
-                            else callback(500, { 'Error': 'Could not update the error' });
-                        });
-                    }
-                } else callback(400, { 'Error': 'The specified user does not exist' });
+                            } else {
+                                _data.update('users', phone, userData, function(err) {
+                                    if (!err) callback(200, userData);
+                                    else callback(500, { 'Error': 'Could not update the error' });
+                                });
+                            }
+                        } else callback(400, { 'Error': 'The specified user does not exist' });
+                    });
+                } else callback(403, { 'Error': 'Token missing or invalid' });
             });
         } else callback(400, { 'Error': 'Missing fields to update' });
     } else callback(400, { 'Error': 'Missing required field' });
@@ -118,20 +127,24 @@ handlers._users.put = function(data, callback) {
 
 // Users - delete
 // Required data: phone
-// @TODO authenticate
 // @TODO delete all data associated with this file
 handlers._users.delete = function(data, callback) {
 
     var phone = typeof(data.queryStringObject.phone) == 'string' && data.queryStringObject.phone.trim().length == 10 ? data.queryStringObject.phone.trim() : false;
 
     if (phone) {
-        _data.read('users', phone, function(err, userData) {
-            if (!err && userData) {
-                _data.delete('users', phone, function(err) {
-                    if (!err) callback(200, { 'Message': 'Successfully deleted the user' });
-                    else callback(500, { 'Error': 'Could not delete the specified user' });
+        var tokenId = typeof(data.headers.token) == 'string' ? data.headers.token : false;
+        tokenHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
+            if (isValid) {
+                _data.read('users', phone, function(err, userData) {
+                    if (!err && userData) {
+                        _data.delete('users', phone, function(err) {
+                            if (!err) callback(200, { 'Message': 'Successfully deleted the user' });
+                            else callback(500, { 'Error': 'Could not delete the specified user' });
+                        });
+                    } else callback(400, { 'Error': 'Could not find the specified user' });
                 });
-            } else callback(400, { 'Error': 'Could not find the specified user' });
+            } else callback(403, { 'Error': 'Token missing or invalid' });
         });
     } else callback(400, { 'Error': 'Missing required field' });
 };
