@@ -108,12 +108,17 @@ handlers._tokens.delete = function(data, callback) {
 };
 
 // Utility function to verify token
-handlers._tokens.verifyToken = function(id, phone, callback) {
-    _data.read('tokens', id, function(err, tokenData) {
+handlers._tokens.verifyToken = function(tokenId, phone, callback) {
+    _data.read('tokens', tokenId, function(err, tokenData) {
         if (!err && tokenData) {
             if (tokenData.phone == phone && tokenData.expires > Date.now()) {
                 callback(true);
-            } else callback(false);
+            } else {
+                _data.delete('tokens', tokenId, function(err) {
+                    if (!err) callback(false);
+                    else callback(false);
+                });
+            }
         } else callback(false);
     });
 };

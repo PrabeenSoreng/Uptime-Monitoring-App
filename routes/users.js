@@ -4,7 +4,7 @@
 
 const _data = require('../lib/data');
 const helpers = require('../lib/helpers');
-const tokenHandler = require('./tokens');
+const tokensHandler = require('./tokens');
 
 var handlers = {};
 
@@ -61,7 +61,7 @@ handlers._users.get = function(data, callback) {
 
     if (phone) {
         var tokenId = typeof(data.headers.token) == 'string' ? data.headers.token : false;
-        tokenHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
+        tokensHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
             if (isValid) {
                 _data.read('users', phone, function(err, userData) {
                     if (!err && userData) {
@@ -89,7 +89,7 @@ handlers._users.put = function(data, callback) {
     if (phone) {
         if (firstName || lastName || password || updatePhone) {
             var tokenId = typeof(data.headers.token) == 'string' ? data.headers.token : false;
-            tokenHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
+            tokensHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
                 if (isValid) {
                     _data.read('users', phone, function(err, userData) {
                         if (!err && userData) {
@@ -127,20 +127,35 @@ handlers._users.put = function(data, callback) {
 
 // Users - delete
 // Required data: phone
-// @TODO delete all data associated with this file
 handlers._users.delete = function(data, callback) {
 
     var phone = typeof(data.queryStringObject.phone) == 'string' && data.queryStringObject.phone.trim().length == 10 ? data.queryStringObject.phone.trim() : false;
 
     if (phone) {
         var tokenId = typeof(data.headers.token) == 'string' ? data.headers.token : false;
-        tokenHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
+        tokensHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
             if (isValid) {
                 _data.read('users', phone, function(err, userData) {
                     if (!err && userData) {
                         _data.delete('users', phone, function(err) {
-                            if (!err) callback(200, { 'Message': 'Successfully deleted the user' });
-                            else callback(500, { 'Error': 'Could not delete the specified user' });
+                            if (!err) {
+                                if (typeof(userData.checks) == 'undefined' || userData.checks.length == 0) {
+                                    callback(200, { 'Message': 'All clear' });
+                                } else {
+                                    var checksToDelete = userData.checks.length;
+                                    var deletionError = false;
+                                    userData.checks.forEach(checkId => {
+                                        _data.delete('checks', checkId, function(err) {
+                                            checksToDelete--;
+                                            if (err) deletionError = true;
+                                            if (checksToDelete == 0) {
+                                                if (!deletionError) callback(200, { 'Message': 'All clear' });
+                                                else callback(500, { 'Message': 'Error while deleting checks, not all checks are deleted' });
+                                            }
+                                        });
+                                    });
+                                }
+                            } else callback(500, { 'Error': 'Could not delete the specified user' });
                         });
                     } else callback(400, { 'Error': 'Could not find the specified user' });
                 });

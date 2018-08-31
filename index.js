@@ -12,6 +12,7 @@ const helpers = require('./lib/helpers');
 const pingHandler = require('./routes/ping');
 const usersHandler = require('./routes/users');
 const tokensHandler = require('./routes/tokens');
+const checksHandler = require('./routes/checks');
 
 const httpServer = http.createServer((req, res) => {
     unifiedServer(req, res);
@@ -76,5 +77,6 @@ var handler = {
 var routes = {
     'ping': pingHandler.ping,
     'users': usersHandler.users,
-    'tokens': tokensHandler.tokens
+    'tokens': tokensHandler.tokens,
+    'checks': checksHandler.checks
 };
