@@ -14,6 +14,11 @@ const usersHandler = require('./routes/users');
 const tokensHandler = require('./routes/tokens');
 const checksHandler = require('./routes/checks');
 
+// Testing twilio
+// helpers.sendTwilioSms('8018156622', 'Hello', function(err) {
+//     console.log('This was the error ', err);
+// });
+
 const httpServer = http.createServer((req, res) => {
     unifiedServer(req, res);
 }).listen(config.httpPort, () => {

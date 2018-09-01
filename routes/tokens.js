@@ -112,7 +112,11 @@ handlers._tokens.verifyToken = function(tokenId, phone, callback) {
     _data.read('tokens', tokenId, function(err, tokenData) {
         if (!err && tokenData) {
             if (tokenData.phone == phone && tokenData.expires > Date.now()) {
-                callback(true);
+                tokenData.expires = Date.now() + (1000 * 60 * 30);
+                _data.update('tokens', tokenId, tokenData, function(err) {
+                    if (!err) callback(true);
+                    else callback(false);
+                });
             } else {
                 _data.delete('tokens', tokenId, function(err) {
                     if (!err) callback(false);
