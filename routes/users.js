@@ -89,7 +89,7 @@ handlers._users.put = function(data, callback) {
     if (phone) {
         if (firstName || lastName || password || updatePhone) {
             var tokenId = typeof(data.headers.token) == 'string' ? data.headers.token : false;
-            tokensHandler._tokens.verifyToken(tokenId, phone, function(isValid) {
+            tokensHandler._tokens.verifyToken(tokenId, phone, function(isValid, tokenData) {
                 if (isValid) {
                     _data.read('users', phone, function(err, userData) {
                         if (!err && userData) {
@@ -104,8 +104,34 @@ handlers._users.put = function(data, callback) {
                                         _data.create('users', updatePhone, userData, function(err) {
                                             if (!err) {
                                                 _data.delete('users', phone, function(err) {
-                                                    if (!err) callback(200, userData);
-                                                    else callback(500, { 'Error': 'Could not delete' });
+                                                    if (!err) {
+                                                        tokenData.phone = updatePhone;
+                                                        _data.update('tokens', tokenId, tokenData, function(err) {
+                                                            if (!err) {
+                                                                if (typeof(userData.checks) == 'undefined' || userData.checks.length == 0) {
+                                                                    callback(200, { 'Message': 'All clear' });
+                                                                } else {
+                                                                    var checksToUpdate = userData.checks.length;
+                                                                    var deletionError = false;
+                                                                    userData.checks.forEach(checkId => {
+                                                                        _data.read('checks', checkId, function(err, checkData) {
+                                                                            if (!err && checkData) {
+                                                                                checkData.phone = updatePhone;
+                                                                                _data.update('checks', checkId, checkData, function(err) {
+                                                                                    checksToUpdate--;
+                                                                                    if (err) deletionError = true;
+                                                                                    if (checksToUpdate == 0) {
+                                                                                        if (!deletionError) callback(200, { 'Message': 'User token and all checks were Updated' });
+                                                                                        else callback(500, { 'Message': 'Error while updating checks, not all checks are updated' });
+                                                                                    }
+                                                                                });
+                                                                            } else callback(500, { 'Error': 'Cannot read checks' });
+                                                                        });
+                                                                    });
+                                                                }
+                                                            } else callback(500, { 'Error': 'Could not update token payload' });
+                                                        });
+                                                    } else callback(500, { 'Error': 'Could not delete' });
                                                 });
                                             } else callback(500, { 'Error': 'Could not create the new user' });
                                         });
