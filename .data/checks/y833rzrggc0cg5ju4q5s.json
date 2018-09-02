@@ -1,1 +1,1 @@
-{"id":"y833rzrggc0cg5ju4q5s","phone":"8018801888","protocol":"https","url":"google.com","method":"get","successCodes":[200,201,300,301],"timeoutSeconds":3}
+{"id":"y833rzrggc0cg5ju4q5s","phone":"8018801888","protocol":"https","url":"google.com","method":"get","successCodes":[200,201,300,301,302],"timeoutSeconds":3,"state":"up","lastChecked":1535900932038}
